@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useCreateBookingMutation, useGetHotelByIdQuery } from "@/lib/api";
+import { useGetHotelByIdQuery } from "@/lib/api";
 import {
   Coffee,
   MapPin,
@@ -13,25 +13,13 @@ import {
 
 import { useParams } from "react-router";
 import { Skeleton } from "@/components/ui/skeleton";
+import BookingModal from "@/components/BookingFormModal";
+import { useState } from "react";
 
 export default function HotelPage() {
+  const [isOpen, setIsOpen] = useState(false);
   const { id } = useParams();
   const { data: hotel, isLoading, isError, error } = useGetHotelByIdQuery(id);
-  const [createBooking, { isLoading: isCreateBookingLoading }
-  ] = useCreateBookingMutation();
-
-  const handleBook = async () => {
-    try {
-      await createBooking({
-        hotelId: id,
-        checkIn: new Date(),
-        checkOut: new Date(),
-        roomNumber: 200
-      })
-    } catch (error) {
-      console.log(error);
-    }
-  }
 
   if (isLoading)
     return (
@@ -153,9 +141,12 @@ export default function HotelPage() {
               <p className="text-2xl font-bold">${hotel.price}</p>
               <p className="text-sm text-muted-foreground">per night</p>
             </div>
-            <Button size="lg" onClick={handleBook}>Book Now</Button>
+            <Button size="lg" onClick={() => setIsOpen(true)}>
+              Book Now
+            </Button>
           </div>
         </div>
+        <BookingModal open={isOpen} setOpen={setIsOpen} hotelId={id} />
       </div>
     </div>
   );
