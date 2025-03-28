@@ -26,7 +26,9 @@ function HotelCard(props) {
         </div>
         <div className="flex items-center space-x-1">
           <Star className="h-4 w-4 fill-primary text-primary" />
-          <span className="font-medium">{props.hotel?.rating ?? "No rating"}</span>
+          <span className="font-medium">
+            {props.hotel?.rating ?? "No rating"}
+          </span>
           <span className="text-muted-foreground">
             ({props.hotel.reviews?.toLocaleString() ?? "No"} Reviews)
           </span>
@@ -34,6 +36,11 @@ function HotelCard(props) {
         <div className="flex items-baseline space-x-2">
           <span className="text-xl font-bold">${props.hotel.price}</span>
         </div>
+        {props.confidence !== 1 && (
+          <p className="text-muted-foreground">
+            Similarity: {(props.confidence * 100).toFixed(2)}%
+          </p>
+        )}
       </div>
     </Link>
   );
