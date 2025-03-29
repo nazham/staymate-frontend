@@ -88,9 +88,9 @@ export default function HotelListings() {
   const filteredHotels =
     selectedLocation === "ALL"
       ? hotels
-      : hotels.filter((hotel) => {
+      : hotels.filter(({ hotel }) => {
           return hotel.location
-            .toLowerCase()
+            ?.toLowerCase()
             .includes(selectedLocation.toLowerCase());
         });
 
