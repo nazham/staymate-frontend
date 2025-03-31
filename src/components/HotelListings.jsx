@@ -55,6 +55,8 @@ export default function HotelListings() {
   }
 
   if (isError) {
+    console.log(error);
+    
     return (
       <section className="px-8 py-8 lg:py-16">
         <div className="mb-12">
@@ -79,7 +81,9 @@ export default function HotelListings() {
           })}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-4">
-          <p className="text-red-500">{error}</p>
+          <p className="text-red-500">
+            {error?.message || "An error occurred"}
+          </p>{" "}
         </div>
       </section>
     );
