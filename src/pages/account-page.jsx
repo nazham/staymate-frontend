@@ -1,8 +1,8 @@
-import { SignedIn, useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 import { Navigate } from "react-router";
 
 const AccountPage = () => {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const {isSignedIn, user } = useUser();
 
   if (!isSignedIn) {
     return <Navigate to="/sign-in" />;

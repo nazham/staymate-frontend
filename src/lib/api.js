@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const BACKEND_URL = "https://staymate-backend-production.up.railway.app";
-// const BACKEND_URL = "http://localhost:8080";
 
 export const api = createApi({
   reducerPath: "api",

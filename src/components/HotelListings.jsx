@@ -1,10 +1,11 @@
 import { useGetHotelsForSearchQueryQuery } from "@/lib/api";
-import { useState } from "react";
+import { forwardRef, useState } from "react";
+import { useSelector } from "react-redux";
 import HotelCard from "./HotelCard";
 import LocationTab from "./LocationTab";
-import { useSelector } from "react-redux";
+;
 
-export default function HotelListings() {
+const HotelListings = forwardRef((props, ref) => {
   const searchValue = useSelector((state) => state.search.value);
   const {
     data: hotels,
@@ -25,7 +26,7 @@ export default function HotelListings() {
 
   if (isLoading) {
     return (
-      <section className="px-8 py-8 lg:py-16">
+      <section ref={ref} className="px-8 py-8 lg:py-16">
         <div className="mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Top trending hotels worldwide
@@ -48,7 +49,17 @@ export default function HotelListings() {
           })}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-4">
-          <p>Loading...</p>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="animate-pulse space-y-4 p-4 border rounded shadow"
+            >
+              <div className="h-40 bg-gray-300 rounded w-full" />
+              <div className="h-4 bg-gray-300 rounded w-3/4" />
+              <div className="h-4 bg-gray-300 rounded w-1/2" />
+              <div className="h-3 bg-gray-200 rounded w-1/3" />
+            </div>
+          ))}
         </div>
       </section>
     );
@@ -56,9 +67,9 @@ export default function HotelListings() {
 
   if (isError) {
     console.log(error);
-    
+
     return (
-      <section className="px-8 py-8 lg:py-16">
+      <section ref={ref} className="px-8 py-8 lg:py-16">
         <div className="mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Top trending hotels worldwide
@@ -99,7 +110,7 @@ export default function HotelListings() {
         });
 
   return (
-    <section className="px-8 py-8 lg:py-16">
+    <section ref={ref} className="px-8 py-8 lg:py-16">
       <div className="mb-12">
         <h2 className="text-3xl md:text-4xl font-bold mb-4">
           Top trending hotels worldwide
@@ -130,4 +141,6 @@ export default function HotelListings() {
       </div>
     </section>
   );
-}
+});
+
+export default HotelListings;
