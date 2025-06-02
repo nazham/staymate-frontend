@@ -16,7 +16,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion"; // For smooth animations
 
-export default function Hero() {
+export default function Hero({ scrollToResults }) {
   const dispatch = useDispatch();
   const [step, setStep] = useState(0);
   const [searchData, setSearchData] = useState({
@@ -36,10 +36,11 @@ export default function Hero() {
     setSearchData({ ...searchData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const searchQuery = Object.values(searchData).join(" ");
-    dispatch(submit(searchQuery));
+    await dispatch(submit(searchQuery));
+    scrollToResults?.();
   };
 
   const steps = [
@@ -55,7 +56,7 @@ export default function Hero() {
             placeholder="Where do you want to go?"
             className="w-full border-none text-lg focus-visible:ring-1 focus-visible:ring-sky-500"
           />
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-white/70">
             City, country, or region you're interested in
           </p>
         </div>
@@ -66,7 +67,7 @@ export default function Hero() {
       icon: <Calendar className="w-5 h-5" />,
       component: (
         <div className="space-y-4">
-         <Select
+          <Select
             onValueChange={(value) =>
               setSearchData({ ...searchData, travelDates: value })
             }
