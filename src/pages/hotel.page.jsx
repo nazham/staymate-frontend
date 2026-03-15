@@ -15,8 +15,13 @@ import { useParams } from "react-router";
 import { Skeleton } from "@/components/ui/skeleton";
 import BookingModal from "@/components/BookingFormModal";
 import { useState } from "react";
+import { useUser } from "@clerk/clerk-react";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 export default function HotelPage() {
+  const { isSignedIn } = useUser();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const { id } = useParams();
   const { data: hotel, isLoading, isError, error } = useGetHotelByIdQuery(id);
@@ -141,12 +146,22 @@ export default function HotelPage() {
               <p className="text-2xl font-bold">${hotel.price}</p>
               <p className="text-sm text-muted-foreground">per night</p>
             </div>
-            <Button size="lg" onClick={() => setIsOpen(true)}>
+            <Button 
+              size="lg" 
+              onClick={() => {
+                if (!isSignedIn) {
+                  toast.error("Please sign in to book a hotel");
+                  navigate("/sign-in");
+                } else {
+                  setIsOpen(true);
+                }
+              }}
+            >
               Book Now
             </Button>
           </div>
         </div>
-        <BookingModal open={isOpen} setOpen={setIsOpen} hotelId={id} />
+        <BookingModal open={isOpen} setOpen={setIsOpen} hotelId={id} hotelPrice={hotel.price} />
       </div>
     </div>
   );

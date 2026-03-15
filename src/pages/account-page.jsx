@@ -1,31 +1,44 @@
 import { useUser } from "@clerk/clerk-react";
-import { Navigate } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Star, Calendar, Hotel, User, Mail, Clock } from "lucide-react";
+import { MapPin, Star, Calendar, Hotel, User, Mail, Clock, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { useGetMyBookingsQuery, useCancelBookingMutation } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 const AccountPage = () => {
   const { isSignedIn, user } = useUser();
 
-  // Mock booking data - in a real app, this would come from an API
-  const booking = {
-    _id: "67daae4f5910ef3ab312606d",
-    checkIn: "2025-03-19T11:45:19.933Z",
-    checkOut: "2025-03-19T11:45:19.933Z",
-    roomNumber: 200,
-    hotel: {
-      _id: "67a8bd8f45ac306e09cd97a7",
-      name: "Montmartre Majesty Hotel",
-      location: "Paris, France",
-      rating: 4.7,
-      image: "https://cf.bstatic.com/xdata/images/hotel/max1280x900/297840629.jpg?k=d20e005d5404a7bea91cb5fe624842f72b27867139c5d65700ab7f69396026ce&o=&hp=1",
-      price: 160
+  const { data: bookings, isLoading, isError } = useGetMyBookingsQuery(undefined, {
+    skip: !isSignedIn,
+  });
+  
+  const [cancelBooking] = useCancelBookingMutation();
+
+  const handleCancel = async (id) => {
+    const toastId = toast.loading("Cancelling booking...");
+    try {
+      await cancelBooking(id).unwrap();
+      toast.dismiss(toastId);
+      toast.success("Booking cancelled successfully!");
+    } catch (error) {
+      toast.dismiss(toastId);
+      const errorMessage = error?.data?.message || "Failed to cancel booking. Please try again.";
+      toast.error(errorMessage);
     }
   };
-
-  if (!isSignedIn) {
-    return <Navigate to="/sign-in" />;
-  }
 
   return (
     <main className="container mx-auto px-4 py-12 min-h-screen bg-gradient-to-b from-background to-muted/20">
@@ -88,64 +101,121 @@ const AccountPage = () => {
             <h2 className="text-2xl font-semibold">My Bookings</h2>
           </div>
           <div className="grid gap-6">
-            <Card className="overflow-hidden border-none shadow-lg bg-white/50 backdrop-blur-sm">
-              <div className="grid md:grid-cols-3">
-                <div className="md:col-span-1 relative group">
-                  <img
-                    src={booking.hotel.image}
-                    alt={booking.hotel.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            {isLoading && (
+              <>
+                <Card className="overflow-hidden border-none shadow-lg bg-white/50 backdrop-blur-sm">
+                  <div className="grid md:grid-cols-3">
+                    <Skeleton className="md:col-span-1 h-full min-h-[250px] rounded-none" />
+                    <CardContent className="md:col-span-2 p-8 space-y-6">
+                      <div className="flex justify-between">
+                        <div className="space-y-2">
+                          <Skeleton className="h-8 w-64" />
+                          <Skeleton className="h-4 w-48" />
+                        </div>
+                        <Skeleton className="h-10 w-24" />
+                      </div>
+                      <div className="grid md:grid-cols-3 gap-6 mt-8">
+                        <Skeleton className="h-16 w-full rounded-lg" />
+                        <Skeleton className="h-16 w-full rounded-lg" />
+                        <Skeleton className="h-16 w-full rounded-lg" />
+                      </div>
+                    </CardContent>
+                  </div>
+                </Card>
+              </>
+            )}
+            {isError && <p>Error loading bookings. Please try again later.</p>}
+            {!isLoading && !isError && (!bookings || bookings.length === 0) && (
+              <p className="text-muted-foreground">You don't have any bookings yet.</p>
+            )}
+            {!isLoading && !isError && bookings && bookings.map((booking) => (
+              <Card key={booking._id} className="overflow-hidden border-none shadow-lg bg-white/50 backdrop-blur-sm">
+                <div className="grid md:grid-cols-3">
+                  <div className="md:col-span-1 relative group">
+                    <img
+                      src={booking.hotelId.image}
+                      alt={booking.hotelId.name}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                  <CardContent className="md:col-span-2 p-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                        <h3 className="text-2xl font-semibold mb-3">{booking.hotelId.name}</h3>
+                        <div className="flex items-center text-muted-foreground mb-3">
+                          <MapPin className="h-4 w-4 mr-2" />
+                          <span>{booking.hotelId.location}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 fill-primary text-primary mr-1" />
+                          <span className="font-medium">{booking.hotelId.rating}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col justify-between items-end">
+                        <div className="text-right">
+                          <p className="text-3xl font-bold text-primary">${booking.hotelId.price}</p>
+                          <p className="text-sm text-muted-foreground">per night</p>
+                        </div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              className="mt-4"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Cancel Booking
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Cancel your booking?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to cancel your stay at <strong>{booking.hotelId.name}</strong>? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleCancel(booking._id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                Confirm Cancellation
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-6 mt-8">
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
+                        <Calendar className="h-5 w-5 text-primary" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Check-in</p>
+                          <p className="font-medium">
+                            {format(new Date(booking.checkIn), "MMM d, yyyy")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
+                        <Calendar className="h-5 w-5 text-primary" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Check-out</p>
+                          <p className="font-medium">
+                            {format(new Date(booking.checkOut), "MMM d, yyyy")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
+                        <Hotel className="h-5 w-5 text-primary" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Room Number</p>
+                          <p className="font-medium">{booking.roomNumber}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
                 </div>
-                <CardContent className="md:col-span-2 p-8">
-                  <div className="flex justify-between items-start mb-6">
-                    <div>
-                      <h3 className="text-2xl font-semibold mb-3">{booking.hotel.name}</h3>
-                      <div className="flex items-center text-muted-foreground mb-3">
-                        <MapPin className="h-4 w-4 mr-2" />
-                        <span>{booking.hotel.location}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 fill-primary text-primary mr-1" />
-                        <span className="font-medium">{booking.hotel.rating}</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-3xl font-bold text-primary">${booking.hotel.price}</p>
-                      <p className="text-sm text-muted-foreground">per night</p>
-                    </div>
-                  </div>
-                  <div className="grid md:grid-cols-3 gap-6 mt-8">
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Check-in</p>
-                        <p className="font-medium">
-                          {format(new Date(booking.checkIn), "MMM d, yyyy")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Check-out</p>
-                        <p className="font-medium">
-                          {format(new Date(booking.checkOut), "MMM d, yyyy")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
-                      <Hotel className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Room Number</p>
-                        <p className="font-medium">{booking.roomNumber}</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </div>
-            </Card>
+              </Card>
+            ))}
           </div>
         </section>
       </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
@@ -8,14 +8,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateBookingMutation } from "@/lib/api";
 import { toast } from "sonner";
 
-export default function BookingModal({ open, setOpen, hotelId }) {
+export default function BookingModal({ open, setOpen, hotelId, hotelPrice }) {
   const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [createBooking, isLoading] = useCreateBookingMutation();
 
@@ -36,6 +36,12 @@ export default function BookingModal({ open, setOpen, hotelId }) {
     resolver: zodResolver(bookingSchema),
     defaultValues: { checkIn: null, checkOut: null, roomNumber: "" },
   });
+
+  const nights = dateRange.from && dateRange.to 
+    ? Math.max(1, differenceInDays(dateRange.to, dateRange.from))
+    : 0;
+  
+  const totalCost = nights * hotelPrice;
 
   const handleBook = async (data) => {
     if (!dateRange.from || !dateRange.to) {
@@ -66,9 +72,12 @@ export default function BookingModal({ open, setOpen, hotelId }) {
         <DialogTitle className="text-xl font-semibold">
           Confirm Your Booking
         </DialogTitle>
+        <DialogDescription className="sr-only">
+          Select check-in and check-out dates, and provide a room number to confirm your hotel booking.
+        </DialogDescription>
         <form onSubmit={handleSubmit(handleBook)} className="space-y-4">
           {/* Date Range Selection */}
-          <Popover>
+          <Popover modal={true}>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full">
                 {dateRange?.from && dateRange?.to
@@ -104,6 +113,20 @@ export default function BookingModal({ open, setOpen, hotelId }) {
           />
           {errors.roomNumber && (
             <p className="text-red-500 text-sm">{errors.roomNumber.message}</p>
+          )}
+
+          {/* Pricing Summary */}
+          {nights > 0 && (
+            <div className="bg-muted p-4 rounded-lg mt-4">
+              <div className="flex justify-between text-sm mb-2">
+                <span>${hotelPrice} × {nights} night{nights !== 1 && 's'}</span>
+                <span>${totalCost.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
+                <span>Total</span>
+                <span>${totalCost.toLocaleString()}</span>
+              </div>
+            </div>
           )}
 
           {/* Submit Button */}

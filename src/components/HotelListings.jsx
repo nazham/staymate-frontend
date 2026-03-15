@@ -3,7 +3,7 @@ import { forwardRef, useState } from "react";
 import { useSelector } from "react-redux";
 import HotelCard from "./HotelCard";
 import LocationTab from "./LocationTab";
-;
+import { Skeleton } from "@/components/ui/skeleton";
 
 const HotelListings = forwardRef((props, ref) => {
   const searchValue = useSelector((state) => state.search.value);
@@ -52,12 +52,14 @@ const HotelListings = forwardRef((props, ref) => {
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="animate-pulse space-y-4 p-4 border rounded shadow"
+              className="space-y-4 p-4 border rounded shadow bg-card"
             >
-              <div className="h-40 bg-gray-300 rounded w-full" />
-              <div className="h-4 bg-gray-300 rounded w-3/4" />
-              <div className="h-4 bg-gray-300 rounded w-1/2" />
-              <div className="h-3 bg-gray-200 rounded w-1/3" />
+              <Skeleton className="h-40 rounded w-full" />
+              <div className="space-y-2 mt-4">
+                 <Skeleton className="h-5 rounded w-3/4" />
+                 <Skeleton className="h-4 rounded w-1/2" />
+              </div>
+              <Skeleton className="h-4 rounded w-1/3 mt-4" />
             </div>
           ))}
         </div>
@@ -102,8 +104,8 @@ const HotelListings = forwardRef((props, ref) => {
 
   const filteredHotels =
     selectedLocation === "ALL"
-      ? hotels
-      : hotels.filter(({ hotel }) => {
+      ? hotels || []
+      : (hotels || []).filter(({ hotel }) => {
           return hotel.location
             ?.toLowerCase()
             .includes(selectedLocation.toLowerCase());

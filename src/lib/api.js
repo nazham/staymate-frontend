@@ -4,6 +4,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const api = createApi({
   reducerPath: "api",
+  tagTypes: ["Bookings"],
   baseQuery: fetchBaseQuery({
     baseUrl: `${BACKEND_URL}/api/`,
     prepareHeaders: async (headers, { getState }) => {
@@ -37,6 +38,18 @@ export const api = createApi({
         method: "POST",
         body: booking,
       }),
+      invalidatesTags: ["Bookings"],
+    }),
+    getMyBookings: builder.query({
+      query: () => "bookings/mine",
+      providesTags: ["Bookings"],
+    }),
+    cancelBooking: builder.mutation({
+      query: (id) => ({
+        url: `bookings/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Bookings"],
     }),
   }),
 });
@@ -47,4 +60,6 @@ export const {
   useGetHotelByIdQuery,
   useCreateHotelMutation,
   useCreateBookingMutation,
+  useGetMyBookingsQuery,
+  useCancelBookingMutation,
 } = api;
