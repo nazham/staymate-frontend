@@ -18,6 +18,7 @@ import { useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import NotFoundPage from "./not-found.page";
 
 export default function HotelPage() {
   const { isSignedIn } = useUser();
@@ -77,7 +78,12 @@ export default function HotelPage() {
       </div>
     );
 
-  if (isError) return <p className="text-red">Error: {isError.message}</p>;
+  if (isError) {
+    if (error?.status === 404) {
+      return <NotFoundPage />;
+    }
+    return <p className="text-red">Error: {isError.message || "An unexpected error occurred"}</p>;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen">

@@ -10,11 +10,14 @@ import HotelPage from "./pages/hotel.page";
 import HotelsPage from "./pages/hotels.page";
 import SignInPage from "./pages/sign-in.page";
 import SignUpPage from "./pages/sign-up.page";
+import NotFoundPage from "./pages/not-found.page";
+import ScrollToTop from "./components/ScrollToTop";
 
 const App = () => {
   return (
     <>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route element={<RootLayout />}>
             <Route element={<MainLayout />}>
@@ -31,6 +34,7 @@ const App = () => {
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </>
